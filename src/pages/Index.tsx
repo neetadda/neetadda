@@ -7,6 +7,8 @@ import StudyHours from '@/components/StudyHours';
 import WaterToSun from '@/components/WaterToSun';
 import StatsPanel from '@/components/StatsPanel';
 import Navigation from '@/components/Navigation';
+import DailyQuote from '@/components/DailyQuote';
+import WeeklyGoals from '@/components/WeeklyGoals';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('todo');
@@ -18,7 +20,12 @@ const Index = () => {
       case 'coaching':
         return <CoachingAttendance />;
       case 'study':
-        return <StudyHours />;
+        return (
+          <div className="space-y-6">
+            <StudyHours />
+            <WeeklyGoals />
+          </div>
+        );
       case 'water':
         return <WaterToSun />;
       case 'stats':
@@ -49,6 +56,9 @@ const Index = () => {
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* Countdown - Always visible */}
         <CountdownTimer />
+        
+        {/* Daily Quote */}
+        <DailyQuote />
 
         {/* Tab Content */}
         <div className="animate-fade-in" key={activeTab}>

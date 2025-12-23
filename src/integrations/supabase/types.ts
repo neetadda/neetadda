@@ -14,7 +14,150 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      coaching_attendance: {
+        Row: {
+          attended: boolean
+          created_at: string
+          date: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          attended: boolean
+          created_at?: string
+          date: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          attended?: boolean
+          created_at?: string
+          date?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      study_hours: {
+        Row: {
+          created_at: string
+          date: string
+          hours: number
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          hours?: number
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          hours?: number
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          completed: boolean | null
+          created_at: string
+          date: string
+          id: string
+          text: string
+          user_id: string | null
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string
+          date: string
+          id?: string
+          text: string
+          user_id?: string | null
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string
+          date?: string
+          id?: string
+          text?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          id: string
+          last_active_date: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_active_date?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_active_date?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      water_sun: {
+        Row: {
+          completed: boolean
+          created_at: string
+          date: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          completed: boolean
+          created_at?: string
+          date: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          date?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      weekly_goals: {
+        Row: {
+          created_at: string
+          id: string
+          target_hours: number
+          user_id: string | null
+          week_start: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          target_hours?: number
+          user_id?: string | null
+          week_start: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          target_hours?: number
+          user_id?: string | null
+          week_start?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

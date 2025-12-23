@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, TrendingUp, Flame, Target, Award } from 'lucide-react';
+import { Trophy, TrendingUp, Flame, Target, Award, BookOpen, GraduationCap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { loadData, calculateStreak, calculatePredictedRank } from '@/lib/storage';
 
@@ -9,6 +9,7 @@ const StatsPanel = () => {
     waterSunStreak: 0,
     avgStudyHours: 0,
     coachingRate: 0,
+    totalDaysTracked: 0,
     predictedRank: { rank: '—', category: 'Start tracking!', color: 'muted' },
   });
 
@@ -28,13 +29,16 @@ const StatsPanel = () => {
       ? (data.coaching.filter(e => e.attended).length / data.coaching.length) * 100
       : 0;
 
-    const predictedRank = calculatePredictedRank(avgStudyHours, coachingRate);
+    const totalDaysTracked = Math.max(data.studyHours.length, data.coaching.length);
+    
+    const predictedRank = calculatePredictedRank(avgStudyHours, coachingRate, totalDaysTracked);
 
     setStats({
       coachingStreak,
       waterSunStreak,
       avgStudyHours,
       coachingRate,
+      totalDaysTracked,
       predictedRank,
     });
   }, []);
@@ -90,22 +94,39 @@ const StatsPanel = () => {
           />
         </div>
 
-        {/* Stats */}
+        {/* Key Metrics */}
         <div className="grid grid-cols-2 gap-3">
           <StatCard
-            icon={TrendingUp}
+            icon={BookOpen}
             label="Avg Study Hours"
             value={stats.avgStudyHours.toFixed(1)}
             suffix="h"
             gradient="gradient-success"
           />
           <StatCard
-            icon={Target}
+            icon={GraduationCap}
             label="Coaching Rate"
             value={Math.round(stats.coachingRate)}
             suffix="%"
             gradient="gradient-hero"
           />
+        </div>
+
+        {/* Rank Prediction Info */}
+        <div className="bg-muted/50 rounded-xl p-4 text-center">
+          <p className="text-xs text-muted-foreground mb-2">
+            Rank prediction factors:
+          </p>
+          <div className="flex justify-around text-xs">
+            <div>
+              <span className="font-medium text-primary">70%</span>
+              <p className="text-muted-foreground">Study Hours</p>
+            </div>
+            <div>
+              <span className="font-medium text-primary">30%</span>
+              <p className="text-muted-foreground">Coaching</p>
+            </div>
+          </div>
         </div>
 
         {/* Predicted Rank */}
@@ -139,7 +160,7 @@ const StatsPanel = () => {
         </div>
 
         <p className="text-xs text-muted-foreground text-center">
-          *Rank prediction is based on your study consistency. Keep pushing! 💪
+          *Based on {stats.totalDaysTracked} days of tracking. More data = better prediction!
         </p>
       </CardContent>
     </Card>

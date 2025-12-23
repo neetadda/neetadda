@@ -114,21 +114,41 @@ export const calculateStreak = (entries: { date: string; completed?: boolean; at
   return streak;
 };
 
+// Improved rank prediction based on study hours and coaching attendance
 export const calculatePredictedRank = (
   avgStudyHours: number,
-  coachingAttendance: number
+  coachingAttendance: number,
+  totalDaysTracked: number = 30
 ): { rank: string; category: string; color: string } => {
-  const score = (avgStudyHours * 10) + (coachingAttendance * 0.5);
+  // Weight factors:
+  // - Study hours: 70% weight (10-12h daily = ideal)
+  // - Coaching attendance: 30% weight (100% = ideal)
   
-  if (score >= 120) {
-    return { rank: '1 - 1,000', category: 'Top Medical Colleges', color: 'success' };
-  } else if (score >= 100) {
-    return { rank: '1,000 - 10,000', category: 'Government Medical Colleges', color: 'primary' };
-  } else if (score >= 80) {
-    return { rank: '10,000 - 50,000', category: 'Private Medical Colleges', color: 'accent' };
-  } else if (score >= 50) {
+  // Normalize study hours (0-12h scale, where 12h = 100%)
+  const studyScore = Math.min((avgStudyHours / 12) * 100, 100);
+  
+  // Coaching attendance is already 0-100%
+  const coachingScore = coachingAttendance;
+  
+  // Consistency bonus: more days tracked = higher reliability
+  const consistencyMultiplier = Math.min(totalDaysTracked / 30, 1);
+  
+  // Weighted final score
+  const finalScore = (studyScore * 0.7 + coachingScore * 0.3) * consistencyMultiplier;
+  
+  if (finalScore >= 90) {
+    return { rank: 'Top 100', category: 'AIIMS Delhi Level', color: 'success' };
+  } else if (finalScore >= 80) {
+    return { rank: '100 - 1,000', category: 'Top Government Medical Colleges', color: 'success' };
+  } else if (finalScore >= 70) {
+    return { rank: '1,000 - 5,000', category: 'Government Medical Colleges', color: 'primary' };
+  } else if (finalScore >= 60) {
+    return { rank: '5,000 - 20,000', category: 'State Government Colleges', color: 'primary' };
+  } else if (finalScore >= 50) {
+    return { rank: '20,000 - 50,000', category: 'Private Medical Colleges', color: 'accent' };
+  } else if (finalScore >= 35) {
     return { rank: '50,000 - 1,00,000', category: 'MBBS Possible', color: 'muted' };
   } else {
-    return { rank: '1,00,000+', category: 'Need More Effort', color: 'destructive' };
+    return { rank: '1,00,000+', category: 'Increase Study Hours & Coaching', color: 'destructive' };
   }
 };

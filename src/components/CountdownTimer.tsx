@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { Timer, Target, BookOpen } from 'lucide-react';
 
-const NEET_DATE = new Date('2026-05-03T10:00:00+05:30');
+// NEET 2026 exam date - May 3, 2026 at 2:00 PM IST
+const NEET_DATE = new Date('2026-05-03T14:00:00+05:30');
 
 interface TimeLeft {
   days: number;
@@ -10,26 +11,30 @@ interface TimeLeft {
   seconds: number;
 }
 
+const calculateTimeLeft = (): TimeLeft => {
+  const now = new Date();
+  const difference = NEET_DATE.getTime() - now.getTime();
+
+  if (difference <= 0) {
+    return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+  }
+
+  return {
+    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((difference / (1000 * 60)) % 60),
+    seconds: Math.floor((difference / 1000) % 60),
+  };
+};
+
 const CountdownTimer = () => {
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+  // Initialize with calculated value immediately to avoid flash of 0s
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>(() => calculateTimeLeft());
 
   useEffect(() => {
-    const calculateTimeLeft = () => {
-      const now = new Date();
-      const difference = NEET_DATE.getTime() - now.getTime();
-
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60),
-          seconds: Math.floor((difference / 1000) % 60),
-        });
-      }
-    };
-
-    calculateTimeLeft();
-    const timer = setInterval(calculateTimeLeft, 1000);
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
 
     return () => clearInterval(timer);
   }, []);
@@ -72,7 +77,7 @@ const CountdownTimer = () => {
 
       <p className="text-center text-primary-foreground/70 mt-6 text-sm">
         <Timer className="w-4 h-4 inline-block mr-1" />
-        Exam Date: 3rd May, 2026
+        Exam Date: 3rd May, 2026 at 2:00 PM IST
       </p>
     </div>
   );
