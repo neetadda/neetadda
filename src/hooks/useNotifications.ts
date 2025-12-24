@@ -1,9 +1,82 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { loadData, getDateString } from '@/lib/storage';
 
+// VAPID public key for push notifications - you would generate this
+const VAPID_PUBLIC_KEY = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U';
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 export const useNotifications = () => {
+  const [swRegistration, setSwRegistration] = useState<ServiceWorkerRegistration | null>(null);
+
+  // Register service worker
+  const registerServiceWorker = useCallback(async () => {
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        console.log('Service Worker registered:', registration);
+        setSwRegistration(registration);
+        return registration;
+      } catch (error) {
+        console.error('Service Worker registration failed:', error);
+        return null;
+      }
+    }
+    return null;
+  }, []);
+
+  // Subscribe to push notifications
+  const subscribeToPush = useCallback(async (registration: ServiceWorkerRegistration) => {
+    try {
+      let subscription = await registration.pushManager.getSubscription();
+      
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+      }
+
+      // Store subscription in database
+      const subscriptionJSON = subscription.toJSON();
+      if (subscriptionJSON.endpoint && subscriptionJSON.keys) {
+        // Use type assertion for the table that's not in generated types yet
+        const { error } = await (supabase.from('push_subscriptions' as any) as any)
+          .upsert({
+            endpoint: subscriptionJSON.endpoint,
+            p256dh: subscriptionJSON.keys.p256dh,
+            auth: subscriptionJSON.keys.auth,
+          }, { onConflict: 'endpoint' });
+
+        if (error) {
+          console.error('Error saving push subscription:', error);
+        } else {
+          console.log('Push subscription saved successfully');
+        }
+      }
+
+      return subscription;
+    } catch (error) {
+      console.error('Failed to subscribe to push:', error);
+      return null;
+    }
+  }, []);
+
   // Request notification permission
   const requestPermission = useCallback(async () => {
     if (!('Notification' in window)) {
@@ -17,24 +90,42 @@ export const useNotifications = () => {
 
     if (Notification.permission !== 'denied') {
       const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        // Register service worker and subscribe to push after permission granted
+        const registration = await registerServiceWorker();
+        if (registration) {
+          await subscribeToPush(registration);
+        }
+      }
       return permission === 'granted';
     }
 
     return false;
-  }, []);
+  }, [registerServiceWorker, subscribeToPush]);
 
   // Show notification
   const showNotification = useCallback((title: string, body: string, icon?: string) => {
     if (Notification.permission === 'granted') {
-      new Notification(title, {
-        body,
-        icon: icon || '/favicon.ico',
-        badge: '/favicon.ico',
-        tag: 'neet-tracker',
-        requireInteraction: true,
-      });
+      // Use service worker registration if available for better mobile support
+      if (swRegistration) {
+        swRegistration.showNotification(title, {
+          body,
+          icon: icon || '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: 'neet-tracker',
+          requireInteraction: true,
+        });
+      } else {
+        new Notification(title, {
+          body,
+          icon: icon || '/favicon.ico',
+          badge: '/favicon.ico',
+          tag: 'neet-tracker',
+          requireInteraction: true,
+        });
+      }
     }
-  }, []);
+  }, [swRegistration]);
 
   // Check for daily reminders
   const checkDailyReminders = useCallback(() => {
@@ -121,8 +212,12 @@ export const useNotifications = () => {
             icon: '📢',
           });
 
-          // Mark as sent (we can't update due to RLS, so we just skip)
-          // In a real app, you'd have an edge function to mark messages as sent
+          // Mark as sent via edge function
+          try {
+            await supabase.functions.invoke('send-notifications');
+          } catch (e) {
+            console.error('Error invoking send-notifications:', e);
+          }
         }
       }
     } catch (error) {
@@ -132,6 +227,13 @@ export const useNotifications = () => {
 
   // Initialize notifications
   useEffect(() => {
+    // Register service worker immediately
+    registerServiceWorker().then((registration) => {
+      if (registration && Notification.permission === 'granted') {
+        subscribeToPush(registration);
+      }
+    });
+
     requestPermission().then((granted) => {
       if (granted) {
         // Check immediately
@@ -140,7 +242,7 @@ export const useNotifications = () => {
 
         // Set up intervals
         const reminderInterval = setInterval(checkDailyReminders, 60 * 60 * 1000); // Every hour
-        const messageInterval = setInterval(checkAdminMessages, 5 * 60 * 1000); // Every 5 minutes
+        const messageInterval = setInterval(checkAdminMessages, 60 * 1000); // Every minute
 
         return () => {
           clearInterval(reminderInterval);
@@ -148,7 +250,7 @@ export const useNotifications = () => {
         };
       }
     });
-  }, [requestPermission, checkDailyReminders, checkAdminMessages]);
+  }, [requestPermission, checkDailyReminders, checkAdminMessages, registerServiceWorker, subscribeToPush]);
 
   return { requestPermission, showNotification };
 };
