@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Trophy, TrendingUp, Flame, Target, Award, BookOpen, GraduationCap } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { loadData, calculateStreak, calculatePredictedRank } from '@/lib/storage';
+import DateDisplay from '@/components/DateDisplay';
+import AdminButton from '@/components/AdminMessagePanel';
 
 const StatsPanel = () => {
   const [stats, setStats] = useState({
@@ -76,6 +78,9 @@ const StatsPanel = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Current Date Display */}
+        <DateDisplay />
+
         {/* Streaks */}
         <div className="grid grid-cols-2 gap-3">
           <StatCard
@@ -162,6 +167,11 @@ const StatsPanel = () => {
         <p className="text-xs text-muted-foreground text-center">
           *Based on {stats.totalDaysTracked} days of tracking. More data = better prediction!
         </p>
+
+        {/* Admin Message Button */}
+        <div className="pt-4 border-t border-border">
+          <AdminButton />
+        </div>
       </CardContent>
     </Card>
   );

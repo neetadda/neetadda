@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { GraduationCap, Check, X, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CoachingEntry, loadData, saveData, getDateString, getLast30Days, formatDate, calculateStreak } from '@/lib/storage';
+import { CoachingEntry, loadData, saveData, getDateString, getLast30Days, calculateStreak } from '@/lib/storage';
 import { toast } from 'sonner';
+import DateDisplay from '@/components/DateDisplay';
+import HistoryBox from '@/components/HistoryBox';
 
 const CoachingAttendance = () => {
   const [entries, setEntries] = useState<CoachingEntry[]>([]);
@@ -50,6 +52,9 @@ const CoachingAttendance = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Current Date Display */}
+        <DateDisplay />
+
         {/* Today's Status */}
         <div className="bg-muted/50 rounded-xl p-4">
           <p className="text-sm text-muted-foreground mb-3">Did you attend coaching today?</p>
@@ -104,33 +109,27 @@ const CoachingAttendance = () => {
           </div>
         </div>
 
-        {/* 30-Day History */}
+        {/* 30-Day History with clickable boxes */}
         <div>
           <div className="flex items-center gap-2 mb-3">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium">Last 30 Days</span>
+            <span className="text-xs text-muted-foreground">(tap to see date)</span>
           </div>
           <div className="grid grid-cols-10 gap-1">
             {last30Days.map((date) => {
               const entry = entries.find(e => e.date === date);
               const isToday = date === today;
+              const status = entry?.attended === true ? 'completed' : entry?.attended === false ? 'missed' : 'none';
+              
               return (
-                <div
+                <HistoryBox
                   key={date}
-                  className={`aspect-square rounded-md flex items-center justify-center text-xs transition-all ${
-                    isToday ? 'ring-2 ring-primary ring-offset-2' : ''
-                  } ${
-                    entry?.attended === true
-                      ? 'bg-success text-success-foreground'
-                      : entry?.attended === false
-                      ? 'bg-destructive text-destructive-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  }`}
-                  title={`${formatDate(date)}${entry ? (entry.attended ? ' - Attended' : ' - Missed') : ' - No data'}`}
-                >
-                  {entry?.attended === true && <Check className="h-3 w-3" />}
-                  {entry?.attended === false && <X className="h-3 w-3" />}
-                </div>
+                  date={date}
+                  status={status}
+                  isToday={isToday}
+                  type="coaching"
+                />
               );
             })}
           </div>

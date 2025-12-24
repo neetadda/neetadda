@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StudyHourEntry, loadData, saveData, getDateString, getLast30Days, formatDate } from '@/lib/storage';
 import { toast } from 'sonner';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import DateDisplay from '@/components/DateDisplay';
 
 const StudyHours = () => {
   const [entries, setEntries] = useState<StudyHourEntry[]>([]);
@@ -68,6 +69,9 @@ const StudyHours = () => {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Current Date Display */}
+        <DateDisplay />
+
         {/* Today's Hours */}
         <div className="bg-muted/50 rounded-xl p-4">
           <p className="text-sm text-muted-foreground mb-3 text-center">Today's Study Hours</p>
