@@ -9,20 +9,33 @@ import StatsPanel from '@/components/StatsPanel';
 import Navigation from '@/components/Navigation';
 import DailyQuote from '@/components/DailyQuote';
 import WeeklyGoals from '@/components/WeeklyGoals';
+import SubjectTracker from '@/components/SubjectTracker';
+import RevisionReminder from '@/components/RevisionReminder';
+import NotificationPrompt from '@/components/NotificationPrompt';
+import { useNotifications } from '@/hooks/useNotifications';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('todo');
+  
+  // Initialize notifications
+  useNotifications();
 
   const renderContent = () => {
     switch (activeTab) {
       case 'todo':
-        return <TodoList />;
+        return (
+          <div className="space-y-6">
+            <TodoList />
+            <RevisionReminder />
+          </div>
+        );
       case 'coaching':
         return <CoachingAttendance />;
       case 'study':
         return (
           <div className="space-y-6">
             <StudyHours />
+            <SubjectTracker />
             <WeeklyGoals />
           </div>
         );
@@ -68,6 +81,9 @@ const Index = () => {
 
       {/* Bottom Navigation */}
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
+      
+      {/* Notification Prompt */}
+      <NotificationPrompt />
     </div>
   );
 };

@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          scheduled_at: string
+          sent: boolean
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          scheduled_at: string
+          sent?: boolean
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          scheduled_at?: string
+          sent?: boolean
+        }
+        Relationships: []
+      }
       coaching_attendance: {
         Row: {
           attended: boolean
