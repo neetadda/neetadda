@@ -26,18 +26,18 @@ export const useNotifications = () => {
 
   // Register service worker
   const registerServiceWorker = useCallback(async () => {
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.register('/sw.js');
-        console.log('Service Worker registered:', registration);
-        setSwRegistration(registration);
-        return registration;
-      } catch (error) {
-        console.error('Service Worker registration failed:', error);
-        return null;
-      }
+    if (!('serviceWorker' in navigator)) return null;
+
+    try {
+      const swUrl = `${import.meta.env.BASE_URL}sw.js`;
+      const registration = await navigator.serviceWorker.register(swUrl);
+      console.log('Service Worker registered:', registration);
+      setSwRegistration(registration);
+      return registration;
+    } catch (error) {
+      console.error('Service Worker registration failed:', error);
+      return null;
     }
-    return null;
   }, []);
 
   // Subscribe to push notifications
