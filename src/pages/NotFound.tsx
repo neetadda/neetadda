@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 
 const NotFound = () => {
@@ -9,15 +9,17 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">404</h1>
-        <p className="mb-4 text-xl text-muted-foreground">Oops! Page not found</p>
-        <a href="/" className="text-primary underline hover:text-primary/90">
-          Return to Home
-        </a>
+    <main className="flex min-h-screen items-center justify-center bg-muted">
+      <div className="text-center max-w-md px-4">
+        <h1 className="mb-2 text-3xl font-bold">NEET Tracker: Page not found</h1>
+        <p className="mb-4 text-sm text-muted-foreground">
+          This NEET preparation page link is invalid—go back to your NEET 2026 tracker to continue daily study, coaching, and revision.
+        </p>
+        <Link to="/" className="text-primary underline hover:text-primary/90">
+          Return to NEET Dashboard
+        </Link>
       </div>
-    </div>
+    </main>
   );
 };
 
